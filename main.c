@@ -6,15 +6,11 @@
 #define HOST_NAME_SIZE 150
 #define DEFAULT_PORT 9696
 
-void Server(int port, char* nick)
-{
+typedef int FileDescriptor;
+typedef struct sockaddr_in SocketAddress;
+#define BUFFER_SIZE 256
 
-}
-void Client(int port, char* nick)
-{
-
-}
-
+#define DEBUG
 
 enum mode
 {
@@ -23,6 +19,65 @@ enum mode
 	CLIENT
 };
 typedef enum mode Mode;
+
+void Error(const char *msg)
+{
+	perror(msg);
+	exit(1);
+}
+
+void Server(int port, char* nick)
+{
+	FileDescriptor serverSocketFD, socketConnectionFD;
+	socklen_t clientSocketLenght;
+	SocketAddress serverAddress, clientAddress;
+	#ifdef DEBUG
+	printf("Initializing socket\n");
+	#endif
+	serverSocketFD= socket(AF_INET, SOCK_STREAM, 0);
+	if (serverSocketFD < 0)
+	{
+		Error("[ERROR] Fail opening socket...\n");
+	}
+	#ifdef DEBUG
+	printf("Socket initialize sucess!\n");
+	#endif
+	memset((char *) &serverAddress, 0, sizeof(serverAddress));
+	serverAddress.sin_family= AF_INET;
+	serverAddress.sin_addr.s_addr= INADDR_ANY;
+	serverAddress.sin_port = htons(serverPort);//htons = host to network endian
+	#ifdef DEBUG
+	printf("Biding socket to port\n");
+	#endif
+	if(0 > ( bind(serverSocketFD, (struct sockaddr *) &serverAddress, sizeof(serverAddress) ) ) )
+	{
+		Error("[ERROR] Binding failed\n");
+	}
+	#ifdef DEBUG
+	printf("Biding socket sucess!\n");
+	#endif
+	#ifdef DEBUG
+	printf("Socket now listening for incoming calls\n");
+	#endif
+	listen(serverSocketFD,5);
+	#ifdef DEBUG
+	printf("Waiting for contact...\n");
+	#endif
+	clientSocketLenght = sizeof(clientAddress);
+	socketConnectionFD = accept(serverSocketFD, (struct sockaddr *) &clientAddress, &clientSocketLenght);
+	if(socketConnectionFD < 0)
+	{
+		Error("[ERROR] Error on accept");
+		continue;
+	}
+	#ifdef DEBUG
+	printf("Contact sucess!\n");
+	#endif
+}
+void Client(int port, char* nick)
+{
+	
+}
 
 int main(int argc, char **argv)
 {
